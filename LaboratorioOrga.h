@@ -4,5 +4,7 @@
 
 // Estructuras
 
-
 // Cabeceras
+void menu();
+void leerArchivoInstrucciones();
+void leerArchivoControl();

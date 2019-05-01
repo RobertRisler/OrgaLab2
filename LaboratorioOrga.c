@@ -55,15 +55,15 @@
 // correspondiente si es necesarios, sino durante la ejecucion de instrucciones.
 // Se utilizan valores 0 o 1 normalmente, si el valor que presenta una linea de control es 2,
 // indica que está en modo "Stuck-at-1".
-int Regdst = 0;
-int Jump = 0;
-int Branch = 0;
-int Memread = 0;
-int Memtoreg = 0;
-int Aluop = 0;
-int Memwrite = 0;
-int Alusrc = 0;
-int Regwrite = 0;
+    int RegDst = 0;
+    int Jump = 0;
+    int Branch = 0;
+    int MemRead = 0;
+    int MemtoReg = 0;
+    int ALUOP = 0;
+    int MemWrite = 0;
+    int ALUSrc = 0;
+    int RegWrite = 0;
 
 // ########## Main ##########
 int main() {
@@ -73,14 +73,43 @@ int main() {
 
 // ########## Funciones ##########
 void menu(){
-    
+    leerArchivoControl();
+    return;
 }
 
 void leerArchivoInstrucciones(){
-
+    char nombreArchivoInstrucciones[50];
+    printf("Ingrese el nombre del archivo de instrucciones:\n");
+    scanf("%s", nombreArchivoInstrucciones);
+    FILE* pArchivo;
+    pArchivo = fopen(nombreArchivoInstrucciones, "r");
+    char linea[30];
+    while(!feof(pArchivo)){
+        fgets(linea, 30, pArchivo);
+        printf("%s", linea);
+    }
+    fclose(pArchivo);
 }
 
 void leerArchivoControl(){
+    char nombreArchivoControl[50];
+    printf("Ingrese el nombre del archivo de control:\n");
+    scanf("%s", nombreArchivoControl);
 
+    FILE* pArchivo;
+    pArchivo = fopen(nombreArchivoControl, "r");
+
+    char nombreControl[30];
+    char valorControl[2];
+    while(!feof(pArchivo)){
+        fscanf(pArchivo, "%s %s\n", nombreControl, valorControl);
+        printf("%s - %s\n", nombreControl, valorControl);
+        if (strcmp(nombreControl, "RegDst") == 0){
+            if (strcmp(valorControl, "1")){
+                RegDst = 1;
+            }
+        }
+    }
+    fclose(pArchivo);
+    return;
 }
-
