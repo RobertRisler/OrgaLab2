@@ -52,7 +52,7 @@ int $ra = 0;
 
 // ##### Lineas de Control #####
 // Todas las lineas parten iniciadas en 0, cambian sus valores al leer el archivo de entrada
-// correspondiente si es necesarios, sino durante la ejecucion de instrucciones.
+// si es necesario, sino, cambian solamente durante la ejecucion de instrucciones.
 // Se utilizan valores 0 o 1 normalmente, si el valor que presenta una linea de control es 2,
 // indica que está en modo "Stuck-at-1".
 int RegDst = 0;
@@ -75,50 +75,31 @@ int main()
 // ########## Funciones ##########
 void menu()
 {
-    leerArchivoControl();
-    printf("%d\n", RegDst);
-    printf("%d\n", Jump);
-    printf("%d\n", Branch);
-    printf("%d\n", MemRead);
-    printf("%d\n", MemtoReg);
-    printf("%d\n", ALUOp);
-    printf("%d\n", MemWrite);
-    printf("%d\n", ALUSrc);
-    printf("%d\n", RegWrite);
+    ejecucion();
     return;
 }
 
-void leerArchivoInstrucciones()
-{
-    char nombreArchivoInstrucciones[50];
-    printf("Ingrese el nombre del archivo de instrucciones:\n");
-    scanf("%s", nombreArchivoInstrucciones);
-    FILE *pArchivo;
-    pArchivo = fopen(nombreArchivoInstrucciones, "r");
-    char linea[30];
-    while (!feof(pArchivo))
-    {
-        fgets(linea, 30, pArchivo);
-        printf("%s", linea);
-    }
-    fclose(pArchivo);
-}
-
-void leerArchivoControl()
+void ejecucion()
 {
     char nombreArchivoControl[50];
     printf("Ingrese el nombre del archivo de control:\n");
     scanf("%s", nombreArchivoControl);
+    leerArchivoControl(nombreArchivoControl);
 
+    int cantidadInstrucciones;
+    cantidadInstrucciones = leerArchivoInstrucciones();
+    return;
+}
+
+void leerArchivoControl(char *nombreArchivoControl)
+{
     FILE *pArchivo;
     pArchivo = fopen(nombreArchivoControl, "r");
-
     char nombreControl[30];
     char valorControl[2];
     while (!feof(pArchivo))
     {
         fscanf(pArchivo, "%s %s\n", nombreControl, valorControl);
-        printf("%s <-> %s\n", nombreControl, valorControl);
         if (strcmp(nombreControl, "RegDst") == 0)
         {
             if (strcmp(valorControl, "1") == 0)
@@ -126,6 +107,7 @@ void leerArchivoControl()
                 RegDst = 2;
             }
         }
+        /*
         if (strcmp(nombreControl, "Jump") == 0)
         {
             if (strcmp(valorControl, "1") == 0)
@@ -168,6 +150,7 @@ void leerArchivoControl()
                 MemWrite = 2;
             }
         }
+        */
         if (strcmp(nombreControl, "ALUSrc") == 0)
         {
             if (strcmp(valorControl, "1") == 0)
@@ -185,4 +168,25 @@ void leerArchivoControl()
     }
     fclose(pArchivo);
     return;
+}
+
+int leerArchivoInstrucciones()
+{
+    char nombreArchivoInstrucciones[50];
+    printf("Ingrese el nombre del archivo de instrucciones:\n");
+    scanf("%s", nombreArchivoInstrucciones);
+
+    FILE *pArchivo;
+    pArchivo = fopen(nombreArchivoInstrucciones, "r");
+
+    int cantidad = 0;
+    char linea[50];
+    while (!feof(pArchivo))
+    {
+        fgets(linea, 50, pArchivo);
+        printf("%s\n", linea);
+        cantidad++;
+    }
+    fclose(pArchivo);
+    return cantidad;
 }
