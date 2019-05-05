@@ -81,20 +81,33 @@ void menu()
 
 void ejecucion()
 {
+    /*
     char nombreArchivoControl[50];
     printf("Ingrese el nombre del archivo de control:\n");
     scanf("%s", nombreArchivoControl);
-    leerArchivoControl(nombreArchivoControl);
+    */
+    leerArchivoControl("control.txt");
 
-    int cantidadInstrucciones;
-    cantidadInstrucciones = leerArchivoInstrucciones();
+    /*
+    char nombreArchivoInstrucciones[50];
+    printf("Ingrese el nombre del archivo de instrucciones:\n");
+    scanf("%s", nombreArchivoInstrucciones);
+    */
+    int cantidadInstrucciones = contarInstrucciones("instrucciones.txt");
+    int tipoInstruccion[cantidadInstrucciones];
+    asignarTipoInstruccion("instrucciones.txt", tipoInstruccion);
+    lista memoriaInstrucciones;
+    memoriaInstrucciones.largo = 0;
+    memoriaInstrucciones.inicio = NULL;
+    guardarInstrucciones("instrucciones.txt", tipoInstruccion, memoriaInstrucciones);
+
     return;
 }
 
-void leerArchivoControl(char *nombreArchivoControl)
+void leerArchivoControl(char *nombre)
 {
     FILE *pArchivo;
-    pArchivo = fopen(nombreArchivoControl, "r");
+    pArchivo = fopen(nombre, "r");
     char nombreControl[30];
     char valorControl[2];
     while (!feof(pArchivo))
@@ -170,23 +183,93 @@ void leerArchivoControl(char *nombreArchivoControl)
     return;
 }
 
-int leerArchivoInstrucciones()
+int contarInstrucciones(char *nombre)
 {
-    char nombreArchivoInstrucciones[50];
-    printf("Ingrese el nombre del archivo de instrucciones:\n");
-    scanf("%s", nombreArchivoInstrucciones);
-
     FILE *pArchivo;
-    pArchivo = fopen(nombreArchivoInstrucciones, "r");
+    pArchivo = fopen(nombre, "r");
 
     int cantidad = 0;
     char linea[50];
     while (!feof(pArchivo))
     {
         fgets(linea, 50, pArchivo);
-        printf("%s\n", linea);
         cantidad++;
     }
     fclose(pArchivo);
     return cantidad;
+}
+
+void asignarTipoInstruccion(char *nombre, int *arregloTipos)
+{
+    FILE *pArchivo;
+    pArchivo = fopen(nombre, "r");
+
+    int contador = 0;
+    char linea[50];
+    while (!feof(pArchivo))
+    {
+        fgets(linea, 50, pArchivo);
+        if (strstr(linea, "add") != NULL)
+        {
+            if (linea[3] == 'i')    // addi
+            {
+                arregloTipos[contador] = 7;
+            }
+            else    // add
+            {
+                arregloTipos[contador] = 0;
+            }
+        }
+        else if (strstr(linea, "sub") != NULL)
+        {
+            arregloTipos[contador] = 1;
+        }
+        else if (strstr(linea, "and") != NULL)
+        {
+            arregloTipos[contador] = 2;
+        }
+        else if (strstr(linea, "or") != NULL)
+        {
+            arregloTipos[contador] = 3;
+        }
+        else if (strstr(linea, "slt") != NULL)
+        {
+            arregloTipos[contador] = 4;
+        }
+        else if (strstr(linea, "lw") != NULL)
+        {
+            arregloTipos[contador] = 5;
+        }
+        else if (strstr(linea, "sw") != NULL)
+        {
+            arregloTipos[contador] = 6;
+        }
+        else if (strstr(linea, "beq") != NULL)
+        {
+            arregloTipos[contador] = 8;
+        }
+        else if (strstr(linea, "j") != NULL)
+        {
+            arregloTipos[contador] = 9;
+        }
+        else if (strstr(linea, ":") != NULL)
+        {
+            arregloTipos[contador] = 10;
+        }
+        contador++;
+    }
+    fclose(pArchivo);
+    return;
+}
+
+void guardarInstrucciones(char *nombre, int *arregloTipos, lista memIns)
+{
+    FILE *pArchivo;
+    pArchivo = fopen(nombre, "r");
+
+    int cantidad = 0;
+    while(!feof(pArchivo))
+    {
+        if 
+    }
 }
