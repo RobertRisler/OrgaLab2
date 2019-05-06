@@ -99,8 +99,8 @@ void ejecucion()
     lista memoriaInstrucciones;
     memoriaInstrucciones.largo = 0;
     memoriaInstrucciones.inicio = NULL;
-    guardarInstrucciones("instrucciones.txt", tipoInstruccion, memoriaInstrucciones);
-
+    memoriaInstrucciones = guardarInstrucciones("instrucciones.txt", cantidadInstrucciones, tipoInstruccion, memoriaInstrucciones);
+    imprimirMemoriaInstrucciones(memoriaInstrucciones);
     return;
 }
 
@@ -211,50 +211,50 @@ void asignarTipoInstruccion(char *nombre, int *arregloTipos)
         fgets(linea, 50, pArchivo);
         if (strstr(linea, "add") != NULL)
         {
-            if (linea[3] == 'i')    // addi
+            if (linea[3] == 'i') // addi
             {
-                arregloTipos[contador] = 7;
+                arregloTipos[contador] = 2;
             }
-            else    // add
+            else // add
             {
                 arregloTipos[contador] = 0;
             }
         }
         else if (strstr(linea, "sub") != NULL)
         {
-            arregloTipos[contador] = 1;
+            arregloTipos[contador] = 0;
         }
         else if (strstr(linea, "and") != NULL)
         {
-            arregloTipos[contador] = 2;
+            arregloTipos[contador] = 0;
         }
         else if (strstr(linea, "or") != NULL)
         {
-            arregloTipos[contador] = 3;
+            arregloTipos[contador] = 0;
         }
         else if (strstr(linea, "slt") != NULL)
         {
-            arregloTipos[contador] = 4;
+            arregloTipos[contador] = 0;
         }
         else if (strstr(linea, "lw") != NULL)
         {
-            arregloTipos[contador] = 5;
+            arregloTipos[contador] = 1;
         }
         else if (strstr(linea, "sw") != NULL)
         {
-            arregloTipos[contador] = 6;
+            arregloTipos[contador] = 1;
         }
         else if (strstr(linea, "beq") != NULL)
         {
-            arregloTipos[contador] = 8;
+            arregloTipos[contador] = 3;
         }
         else if (strstr(linea, "j") != NULL)
         {
-            arregloTipos[contador] = 9;
+            arregloTipos[contador] = 4;
         }
         else if (strstr(linea, ":") != NULL)
         {
-            arregloTipos[contador] = 10;
+            arregloTipos[contador] = 5;
         }
         contador++;
     }
@@ -262,14 +262,101 @@ void asignarTipoInstruccion(char *nombre, int *arregloTipos)
     return;
 }
 
-void guardarInstrucciones(char *nombre, int *arregloTipos, lista memIns)
+lista guardarInstrucciones(char *nombre, int cantidadInstrucciones, int *arregloTipos, lista memoriaIns)
 {
     FILE *pArchivo;
     pArchivo = fopen(nombre, "r");
 
-    int cantidad = 0;
-    while(!feof(pArchivo))
+    int i, tipoInstruccion;
+    for (i = 0; i < cantidadInstrucciones; i++)
     {
-        if 
+        nodo *instruccion = (nodo *)malloc(sizeof(nodo));
+        instruccion->sgte = NULL;
+        if (memoriaIns.largo == 0)
+        {
+            memoriaIns.inicio = instruccion;
+            memoriaIns.largo = 1;
+        }
+        else
+        {
+            nodo *aux = memoriaIns.inicio;
+            int j;
+            for (j = 0; j < memoriaIns.largo - 1; j++)
+            {
+                aux = aux->sgte;
+            }
+            aux->sgte = instruccion;
+            memoriaIns.largo++;
+        }
+
+        if (arregloTipos[i] == 0)       // add, sub, and, or, slt
+        {
+            fscanf(pArchivo, "%s %s, %s, %s\n", instruccion->ins, instruccion->rd, instruccion->rs, instruccion->rt);
+        }
+        else if (arregloTipos[i] == 1)  // lw, sw
+        {
+            fscanf(pArchivo, "%s %s, %s(%s)\n", instruccion->ins, instruccion->rt, instruccion->offset, instruccion->rs);
+        }
+        else if (arregloTipos[i] == 2)  // addi
+        {
+            fscanf(pArchivo, "%s %s, %s, %s\n", instruccion->ins, instruccion->rt, instruccion->rs, instruccion->immediate);
+        }
+        else if (arregloTipos[i] == 3)  // beq
+        {
+            fscanf(pArchivo, "%s %s, %s, %s\n", instruccion->ins, instruccion->rt, instruccion->rs, instruccion->label);
+        }
+        else if (arregloTipos[i] == 4)  // j
+        {
+            fscanf(pArchivo, "%s %s\n", instruccion->ins, instruccion->label);
+        }
+        else if (arregloTipos[i] == 5)  // label
+        {
+            fscanf(pArchivo, "%s:\n", instruccion->label);
+        }
     }
+    fclose(pArchivo);
+    return memoriaIns;
+}
+
+void imprimirMemoriaInstrucciones(lista memoriaIns)
+{
+    int i;
+    nodo *aux = memoriaIns.inicio;
+    for (i = 0; i < memoriaIns.largo - 1; i++)
+    {
+        if (strcmp(aux->ins, "add") == 0 || strcmp(aux->ins, "sub") == 0 || strcmp(aux->ins, "and") == 0 ||
+            strcmp(aux->ins, "or") == 0 || strcmp(aux->ins, "slt") == 0)
+        {
+            printf("%s %s, %s, %s\n", aux->ins, aux->rd, aux->rs, aux->rt);
+        }
+        else if (strcmp(aux->ins, "lw") == 0 || strcmp(aux->ins, "sw") == 0)
+        {
+            printf("%s %s, %s(%s)\n", aux->ins, aux->rt, aux->offset, aux->rs);
+        }
+        else if (strcmp(aux->ins, "addi") == 0)
+        {
+            printf("1) %s ", aux->ins);
+            printf("2) %s, ", aux->rt);
+            printf("3) %s, ", aux->rs);
+            printf("4) %s\n", aux->immediate);
+            //printf("%s %s, %s, %s\n", aux->ins, aux->rt, aux->rs, aux->immediate);
+        }
+        else if (strcmp(aux->ins, "beq") == 0)
+        {
+            printf("%s %s, %s, %s\n", aux->ins, aux->rt, aux->rs, aux->label);
+        }
+        else if (strcmp(aux->ins, "j") == 0)
+        {
+            printf("%s %s\n", aux->ins, aux->label);
+        }
+        else
+        {
+            printf("%s:\n", aux->label);
+        }
+        if (aux->sgte != NULL)
+        {
+            aux = aux->sgte;
+        }
+    }
+    return;
 }
