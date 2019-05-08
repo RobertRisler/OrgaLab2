@@ -93,13 +93,10 @@ void ejecucion()
     printf("Ingrese el nombre del archivo de instrucciones:\n");
     scanf("%s", nombreArchivoInstrucciones);
     */
-    int cantidadInstrucciones = contarInstrucciones("instrucciones.txt");
-    int tipoInstruccion[cantidadInstrucciones];
-    asignarTipoInstruccion("instrucciones.txt", tipoInstruccion);
     lista memoriaInstrucciones;
     memoriaInstrucciones.largo = 0;
     memoriaInstrucciones.inicio = NULL;
-    memoriaInstrucciones = guardarInstrucciones("instrucciones.txt", cantidadInstrucciones, tipoInstruccion, memoriaInstrucciones);
+    memoriaInstrucciones = guardarInstrucciones("instrucciones.txt", memoriaInstrucciones);
     imprimirMemoriaInstrucciones(memoriaInstrucciones);
     return;
 }
@@ -183,93 +180,17 @@ void leerArchivoControl(char *nombre)
     return;
 }
 
-int contarInstrucciones(char *nombre)
+lista guardarInstrucciones(char *nombre, lista memoriaIns)
 {
     FILE *pArchivo;
     pArchivo = fopen(nombre, "r");
 
-    int cantidad = 0;
     char linea[50];
-    while (!feof(pArchivo))
+    while(!feof(pArchivo))
     {
         fgets(linea, 50, pArchivo);
-        cantidad++;
-    }
-    fclose(pArchivo);
-    return cantidad;
-}
+        limpiarLinea(linea);
 
-void asignarTipoInstruccion(char *nombre, int *arregloTipos)
-{
-    FILE *pArchivo;
-    pArchivo = fopen(nombre, "r");
-
-    int contador = 0;
-    char linea[50];
-    while (!feof(pArchivo))
-    {
-        fgets(linea, 50, pArchivo);
-        if (strstr(linea, "add") != NULL)
-        {
-            if (linea[3] == 'i') // addi
-            {
-                arregloTipos[contador] = 2;
-            }
-            else // add
-            {
-                arregloTipos[contador] = 0;
-            }
-        }
-        else if (strstr(linea, "sub") != NULL)
-        {
-            arregloTipos[contador] = 0;
-        }
-        else if (strstr(linea, "and") != NULL)
-        {
-            arregloTipos[contador] = 0;
-        }
-        else if (strstr(linea, "or") != NULL)
-        {
-            arregloTipos[contador] = 0;
-        }
-        else if (strstr(linea, "slt") != NULL)
-        {
-            arregloTipos[contador] = 0;
-        }
-        else if (strstr(linea, "lw") != NULL)
-        {
-            arregloTipos[contador] = 1;
-        }
-        else if (strstr(linea, "sw") != NULL)
-        {
-            arregloTipos[contador] = 1;
-        }
-        else if (strstr(linea, "beq") != NULL)
-        {
-            arregloTipos[contador] = 3;
-        }
-        else if (strstr(linea, "j") != NULL)
-        {
-            arregloTipos[contador] = 4;
-        }
-        else if (strstr(linea, ":") != NULL)
-        {
-            arregloTipos[contador] = 5;
-        }
-        contador++;
-    }
-    fclose(pArchivo);
-    return;
-}
-
-lista guardarInstrucciones(char *nombre, int cantidadInstrucciones, int *arregloTipos, lista memoriaIns)
-{
-    FILE *pArchivo;
-    pArchivo = fopen(nombre, "r");
-
-    int i, tipoInstruccion;
-    for (i = 0; i < cantidadInstrucciones; i++)
-    {
         nodo *instruccion = (nodo *)malloc(sizeof(nodo));
         instruccion->sgte = NULL;
         if (memoriaIns.largo == 0)
@@ -289,40 +210,106 @@ lista guardarInstrucciones(char *nombre, int cantidadInstrucciones, int *arreglo
             memoriaIns.largo++;
         }
 
-        if (arregloTipos[i] == 0)       // add, sub, and, or, slt
+        char *token;
+        token = strtok(linea, " ");
+
+        if (strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || strcmp(token, "and") == 0 ||
+            strcmp(token, "or") == 0 || strcmp(token, "slt") == 0)
         {
-            fscanf(pArchivo, "%s %s, %s, %s\n", instruccion->ins, instruccion->rd, instruccion->rs, instruccion->rt);
+            instruccion->ins = token;
+            token = strtok(NULL, " ");
+            instruccion->rd = token;
+            token = strtok(NULL, " ");
+            instruccion->rs = token;
+            token = strtok(NULL, " ");
+            instruccion->rt = token;
         }
-        else if (arregloTipos[i] == 1)  // lw, sw
+        else if (strcmp(token, "lw") == 0 || strcmp(token, "sw") == 0)
         {
-            fscanf(pArchivo, "%s %s, %s(%s)\n", instruccion->ins, instruccion->rt, instruccion->offset, instruccion->rs);
+            instruccion->ins = token;
+            token = strtok(NULL, " ");
+            instruccion->rt = token;
+            token = strtok(NULL, " ");
+            instruccion->offset = token;
+            token = strtok(NULL, " ");
+            instruccion->rs = token;
         }
-        else if (arregloTipos[i] == 2)  // addi
+        else if (strcmp(token, "addi") == 0)
         {
-            fscanf(pArchivo, "%s %s, %s, %s\n", instruccion->ins, instruccion->rt, instruccion->rs, instruccion->immediate);
+            instruccion->ins = token;
+            token = strtok(NULL, " ");
+            instruccion->rt = token;
+            token = strtok(NULL, " ");
+            instruccion->rs = token;
+            token = strtok(NULL, " ");
+            instruccion->immediate = token;
         }
-        else if (arregloTipos[i] == 3)  // beq
+        else if (strcmp(token, "beq") == 0)
         {
-            fscanf(pArchivo, "%s %s, %s, %s\n", instruccion->ins, instruccion->rt, instruccion->rs, instruccion->label);
+            instruccion->ins = token;
+            token = strtok(NULL, " ");
+            instruccion->rt = token;
+            token = strtok(NULL, " ");
+            instruccion->rs = token;
+            token = strtok(NULL, " ");
+            instruccion->label = token;
         }
-        else if (arregloTipos[i] == 4)  // j
+        else if (strcmp(token , "j") == 0)
         {
-            fscanf(pArchivo, "%s %s\n", instruccion->ins, instruccion->label);
+            instruccion->ins = token;
+            token = strtok(NULL, " ");
+            instruccion->label = token;
         }
-        else if (arregloTipos[i] == 5)  // label
+        else if (strchr(token, ':') != NULL)
         {
-            fscanf(pArchivo, "%s:\n", instruccion->label);
+            instruccion->ins = token;
         }
     }
     fclose(pArchivo);
     return memoriaIns;
 }
 
+void limpiarLinea(char *string)
+{
+    while (strchr(string, ',') != NULL)
+        {
+            removerComa(string, ',');
+        }
+        if (strchr(string, '(') != NULL)
+        {
+            char *aux;
+            aux = strchr(string, '(');
+            *aux = ' ';
+        }
+        while (strchr(string, ')') != NULL)
+        {
+            char *aux;
+            aux = strchr(string, ')');
+            *aux = ' ';
+        }
+        return;
+}
+
+void removerComa(char *string, char basura)
+{
+    char *aux1, *aux2;
+    for (aux1 = aux2 = string; *aux1 != '\0'; aux1++)
+    {
+        *aux2 = *aux1;
+        if (*aux2 != basura)
+        {
+            aux2++;
+        }
+    }
+    *aux2 = '\0';
+    return;
+}
+
 void imprimirMemoriaInstrucciones(lista memoriaIns)
 {
     int i;
     nodo *aux = memoriaIns.inicio;
-    for (i = 0; i < memoriaIns.largo - 1; i++)
+    for (i = 0; i < memoriaIns.largo; i++)
     {
         if (strcmp(aux->ins, "add") == 0 || strcmp(aux->ins, "sub") == 0 || strcmp(aux->ins, "and") == 0 ||
             strcmp(aux->ins, "or") == 0 || strcmp(aux->ins, "slt") == 0)
@@ -335,11 +322,7 @@ void imprimirMemoriaInstrucciones(lista memoriaIns)
         }
         else if (strcmp(aux->ins, "addi") == 0)
         {
-            printf("1) %s ", aux->ins);
-            printf("2) %s, ", aux->rt);
-            printf("3) %s, ", aux->rs);
-            printf("4) %s\n", aux->immediate);
-            //printf("%s %s, %s, %s\n", aux->ins, aux->rt, aux->rs, aux->immediate);
+            printf("%s %s, %s, %s\n", aux->ins, aux->rt, aux->rs, aux->immediate);
         }
         else if (strcmp(aux->ins, "beq") == 0)
         {
@@ -353,10 +336,8 @@ void imprimirMemoriaInstrucciones(lista memoriaIns)
         {
             printf("%s:\n", aux->label);
         }
-        if (aux->sgte != NULL)
-        {
-            aux = aux->sgte;
-        }
+        
+        aux = aux->sgte;
     }
     return;
 }
