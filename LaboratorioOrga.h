@@ -5,13 +5,13 @@
 // Estructuras
 typedef struct Nodo
 {
-    char *ins;          // add, sub, and, etc...
-    char *rs;           // Primer operando
-    char *rt;           // Segundo operando / registro destino
-    char *rd;           // Registro destino
-    char *label;        // Etiqueta para instrucciones beq / j
-    char *offset;       // Dato para lw / sw
-    char *immediate;    // Valor para instrucción addi
+    char ins[10];          // add, sub, and, etc...
+    char rs[10];           // Primer operando
+    char rt[10];           // Segundo operando / registro destino
+    char rd[10];           // Registro destino
+    char label[10];        // Etiqueta para instrucciones beq / j
+    char offset[10];       // Dato para lw / sw
+    char immediate[10];    // Valor para instrucción addi
     struct Nodo *sgte;
 } nodo;
 
@@ -23,9 +23,10 @@ typedef struct Lista
 
 // Cabeceras
 void menu();
-void ejecucion();
 void leerArchivoControl();
-lista guardarInstrucciones(char *nombre, lista memoriaIns);
+void guardarInstrucciones(char *nombre, lista *memoriaIns);
+void ingresarInstruccion(lista *memoriaIns, int tipoIns, char *token1, char *token2, char *token3, char *token4);
 void limpiarLinea(char *string);
 void removerComa(char *string, char basura);
-void imprimirMemoriaInstrucciones(lista memoriaIns);
+void imprimirMemoriaInstrucciones(lista *memoriaIns);
+void ejecucion(lista *memoriaIns);

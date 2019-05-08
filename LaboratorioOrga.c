@@ -75,12 +75,6 @@ int main()
 // ########## Funciones ##########
 void menu()
 {
-    ejecucion();
-    return;
-}
-
-void ejecucion()
-{
     /*
     char nombreArchivoControl[50];
     printf("Ingrese el nombre del archivo de control:\n");
@@ -93,11 +87,12 @@ void ejecucion()
     printf("Ingrese el nombre del archivo de instrucciones:\n");
     scanf("%s", nombreArchivoInstrucciones);
     */
-    lista memoriaInstrucciones;
-    memoriaInstrucciones.largo = 0;
-    memoriaInstrucciones.inicio = NULL;
-    memoriaInstrucciones = guardarInstrucciones("instrucciones.txt", memoriaInstrucciones);
-    imprimirMemoriaInstrucciones(memoriaInstrucciones);
+    lista *memoriaInstrucciones = (lista *)malloc(sizeof(lista));
+    memoriaInstrucciones->largo = 0;
+    memoriaInstrucciones->inicio = NULL;
+    guardarInstrucciones("instrucciones.txt", memoriaInstrucciones);
+
+    ejecucion(memoriaInstrucciones);
     return;
 }
 
@@ -180,114 +175,150 @@ void leerArchivoControl(char *nombre)
     return;
 }
 
-lista guardarInstrucciones(char *nombre, lista memoriaIns)
+void guardarInstrucciones(char *nombre, lista *memoriaIns)
 {
     FILE *pArchivo;
     pArchivo = fopen(nombre, "r");
 
     char linea[50];
-    while(!feof(pArchivo))
+    while (!feof(pArchivo))
     {
         fgets(linea, 50, pArchivo);
         limpiarLinea(linea);
 
-        nodo *instruccion = (nodo *)malloc(sizeof(nodo));
-        instruccion->sgte = NULL;
-        if (memoriaIns.largo == 0)
-        {
-            memoriaIns.inicio = instruccion;
-            memoriaIns.largo = 1;
-        }
-        else
-        {
-            nodo *aux = memoriaIns.inicio;
-            int j;
-            for (j = 0; j < memoriaIns.largo - 1; j++)
-            {
-                aux = aux->sgte;
-            }
-            aux->sgte = instruccion;
-            memoriaIns.largo++;
-        }
+        char *token1, *token2, *token3, *token4;
+        token1 = strtok(linea, " ");
 
-        char *token;
-        token = strtok(linea, " ");
-
-        if (strcmp(token, "add") == 0 || strcmp(token, "sub") == 0 || strcmp(token, "and") == 0 ||
-            strcmp(token, "or") == 0 || strcmp(token, "slt") == 0)
+        if (strcmp(token1, "add") == 0 || strcmp(token1, "sub") == 0 || strcmp(token1, "and") == 0 ||
+            strcmp(token1, "or") == 0 || strcmp(token1, "slt") == 0)
         {
-            instruccion->ins = token;
-            token = strtok(NULL, " ");
-            instruccion->rd = token;
-            token = strtok(NULL, " ");
-            instruccion->rs = token;
-            token = strtok(NULL, " ");
-            instruccion->rt = token;
+            token2 = strtok(NULL, " ");
+            token3 = strtok(NULL, " ");
+            token4 = strtok(NULL, " ");
+            ingresarInstruccion(memoriaIns, 1, token1, token2, token3, token4);
         }
-        else if (strcmp(token, "lw") == 0 || strcmp(token, "sw") == 0)
+        else if (strcmp(token1, "lw") == 0 || strcmp(token1, "sw") == 0)
         {
-            instruccion->ins = token;
-            token = strtok(NULL, " ");
-            instruccion->rt = token;
-            token = strtok(NULL, " ");
-            instruccion->offset = token;
-            token = strtok(NULL, " ");
-            instruccion->rs = token;
+            token2 = strtok(NULL, " ");
+            token3 = strtok(NULL, " ");
+            token4 = strtok(NULL, " ");
+            ingresarInstruccion(memoriaIns, 2, token1, token2, token3, token4);
         }
-        else if (strcmp(token, "addi") == 0)
+        else if (strcmp(token1, "addi") == 0)
         {
-            instruccion->ins = token;
-            token = strtok(NULL, " ");
-            instruccion->rt = token;
-            token = strtok(NULL, " ");
-            instruccion->rs = token;
-            token = strtok(NULL, " ");
-            instruccion->immediate = token;
+            token2 = strtok(NULL, " ");
+            token3 = strtok(NULL, " ");
+            token4 = strtok(NULL, " ");
+            ingresarInstruccion(memoriaIns, 3, token1, token2, token3, token4);
         }
-        else if (strcmp(token, "beq") == 0)
+        else if (strcmp(token1, "beq") == 0)
         {
-            instruccion->ins = token;
-            token = strtok(NULL, " ");
-            instruccion->rt = token;
-            token = strtok(NULL, " ");
-            instruccion->rs = token;
-            token = strtok(NULL, " ");
-            instruccion->label = token;
+            token2 = strtok(NULL, " ");
+            token3 = strtok(NULL, " ");
+            token4 = strtok(NULL, " ");
+            ingresarInstruccion(memoriaIns, 4, token1, token2, token3, token4);
         }
-        else if (strcmp(token , "j") == 0)
+        else if (strcmp(token1, "j") == 0)
         {
-            instruccion->ins = token;
-            token = strtok(NULL, " ");
-            instruccion->label = token;
+            token2 = strtok(NULL, " ");
+            ingresarInstruccion(memoriaIns, 5, token1, token2, "placeholder", "placeholder");
         }
-        else if (strchr(token, ':') != NULL)
+        else if (strchr(token1, ':') != NULL)
         {
-            instruccion->ins = token;
+            ingresarInstruccion(memoriaIns, 6, token1, "placeholder", "placeholder", "placeholder");   
         }
     }
     fclose(pArchivo);
-    return memoriaIns;
+    return;
+}
+
+void ingresarInstruccion(lista *memoriaIns, int tipoIns, char *token1, char *token2, char *token3, char *token4)
+{
+    nodo *instruccion = (nodo *)malloc(sizeof(nodo));
+
+    switch (tipoIns)
+    {
+    case 1: // add, sub, and, or, slt
+        strcpy(instruccion->ins, token1);
+        strcpy(instruccion->rd, token2);
+        strcpy(instruccion->rs, token3);
+        strcpy(instruccion->rt, token4);
+        break;
+    case 2: // lw, sw
+        strcpy(instruccion->ins, token1);
+        strcpy(instruccion->rt, token2);
+        strcpy(instruccion->offset, token3);
+        strcpy(instruccion->rs, token4);
+        break;
+    case 3: // addi
+        strcpy(instruccion->ins, token1);
+        strcpy(instruccion->rt, token2);
+        strcpy(instruccion->rs, token3);
+        strcpy(instruccion->immediate, token4);
+        break;
+    case 4: // beq
+        strcpy(instruccion->ins, token1);
+        strcpy(instruccion->rt, token2);
+        strcpy(instruccion->rs, token3);
+        strcpy(instruccion->label, token4);
+        break;
+    case 5: // j
+        strcpy(instruccion->ins, token1);
+        strcpy(instruccion->label, token2);
+        break;
+    case 6: // label
+        strcpy(instruccion->ins, token1);
+        break;
+    default:
+        free(instruccion);
+        return;
+    }
+
+    instruccion->sgte = NULL;
+    if (memoriaIns->largo == 0)
+    {
+        memoriaIns->inicio = instruccion;
+        memoriaIns->largo = 1;
+    }
+    else
+    {
+        nodo *aux = memoriaIns->inicio;
+        int j;
+        for (j = 0; j < memoriaIns->largo - 1; j++)
+        {
+            aux = aux->sgte;
+        }
+        aux->sgte = instruccion;
+        memoriaIns->largo++;
+    }
+    return;
 }
 
 void limpiarLinea(char *string)
 {
     while (strchr(string, ',') != NULL)
-        {
-            removerComa(string, ',');
-        }
-        if (strchr(string, '(') != NULL)
-        {
-            char *aux;
-            aux = strchr(string, '(');
-            *aux = ' ';
-        }
-        while (strchr(string, ')') != NULL)
-        {
-            char *aux;
-            aux = strchr(string, ')');
-            *aux = ' ';
-        }
-        return;
+    {
+        removerComa(string, ',');
+    }
+    if (strchr(string, '(') != NULL)
+    {
+        char *aux;
+        aux = strchr(string, '(');
+        *aux = ' ';
+    }
+    if (strchr(string, ')') != NULL)
+    {
+        char *aux;
+        aux = strchr(string, ')');
+        *aux = ' ';
+    }
+    if (strchr(string, '\n') != NULL)
+    {
+        char *aux;
+        aux = strchr(string, '\n');
+        *aux = '\0';
+    }
+    return;
 }
 
 void removerComa(char *string, char basura)
@@ -305,12 +336,14 @@ void removerComa(char *string, char basura)
     return;
 }
 
-void imprimirMemoriaInstrucciones(lista memoriaIns)
+void imprimirMemoriaInstrucciones(lista *memoriaIns)
 {
     int i;
-    nodo *aux = memoriaIns.inicio;
-    for (i = 0; i < memoriaIns.largo; i++)
+    printf("largo memoria: %d\n", memoriaIns->largo);
+    nodo *aux = memoriaIns->inicio;
+    for (i = 0; i < memoriaIns->largo; i++)
     {
+        
         if (strcmp(aux->ins, "add") == 0 || strcmp(aux->ins, "sub") == 0 || strcmp(aux->ins, "and") == 0 ||
             strcmp(aux->ins, "or") == 0 || strcmp(aux->ins, "slt") == 0)
         {
@@ -332,12 +365,18 @@ void imprimirMemoriaInstrucciones(lista memoriaIns)
         {
             printf("%s %s\n", aux->ins, aux->label);
         }
-        else
+        else if (strchr(aux->ins, ':') != NULL)
         {
-            printf("%s:\n", aux->label);
+            printf("%s\n", aux->ins);
         }
-        
         aux = aux->sgte;
     }
+    return;
+}
+
+void ejecucion(lista *memoriaIns)
+{
+    nodo *contadorPrograma = memoriaIns->inicio;
+    
     return;
 }
