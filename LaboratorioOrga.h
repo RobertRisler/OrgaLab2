@@ -29,4 +29,9 @@ void ingresarInstruccion(lista *memoriaIns, int tipoIns, char *token1, char *tok
 void limpiarLinea(char *string);
 void removerComa(char *string, char basura);
 void imprimirMemoriaInstrucciones(lista *memoriaIns);
-void ejecucion(lista *memoriaIns);
+void ejecucionPrograma(lista *memoriaIns);
+void instructionFetch(nodo *contadorPrograma);
+void instructionDecode(nodo *contadorPrograma);
+void execution();
+void memoryAccess();
+void writeBack();

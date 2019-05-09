@@ -60,7 +60,8 @@ int Jump = 0;
 int Branch = 0;
 int MemRead = 0;
 int MemtoReg = 0;
-int ALUOp = 0;
+int ALUOpIZQ = 0; // -> 00
+int ALUOpDER = 0; //    00 <-
 int MemWrite = 0;
 int ALUSrc = 0;
 int RegWrite = 0;
@@ -92,7 +93,7 @@ void menu()
     memoriaInstrucciones->inicio = NULL;
     guardarInstrucciones("instrucciones.txt", memoriaInstrucciones);
 
-    ejecucion(memoriaInstrucciones);
+    ejecucionPrograma(memoriaInstrucciones);
     return;
 }
 
@@ -225,7 +226,7 @@ void guardarInstrucciones(char *nombre, lista *memoriaIns)
         }
         else if (strchr(token1, ':') != NULL)
         {
-            ingresarInstruccion(memoriaIns, 6, token1, "placeholder", "placeholder", "placeholder");   
+            ingresarInstruccion(memoriaIns, 6, token1, "placeholder", "placeholder", "placeholder");
         }
     }
     fclose(pArchivo);
@@ -343,7 +344,7 @@ void imprimirMemoriaInstrucciones(lista *memoriaIns)
     nodo *aux = memoriaIns->inicio;
     for (i = 0; i < memoriaIns->largo; i++)
     {
-        
+
         if (strcmp(aux->ins, "add") == 0 || strcmp(aux->ins, "sub") == 0 || strcmp(aux->ins, "and") == 0 ||
             strcmp(aux->ins, "or") == 0 || strcmp(aux->ins, "slt") == 0)
         {
@@ -374,9 +375,190 @@ void imprimirMemoriaInstrucciones(lista *memoriaIns)
     return;
 }
 
-void ejecucion(lista *memoriaIns)
+void ejecucionPrograma(lista *memoriaIns)
 {
+    int numeroCiclo = 0;
     nodo *contadorPrograma = memoriaIns->inicio;
-    
+
+    while (contadorPrograma != NULL)
+    {
+        numeroCiclo++;
+        // Escribir número ciclo
+        instructionFetch(contadorPrograma);
+        instructionDecode(contadorPrograma);
+
+        contadorPrograma = contadorPrograma->sgte;
+    }
+
+    return;
+}
+
+void instructionFetch(nodo *contadorPrograma)
+{
+    // Escribir instrucción
+    return;
+}
+
+void instructionDecode(nodo *instruccion)
+{
+    if (strcmp(instruccion->ins, "add") == 0 || strcmp(instruccion->ins, "sub") == 0 || strcmp(instruccion->ins, "and") == 0 ||
+        strcmp(instruccion->ins, "or") == 0 || strcmp(instruccion->ins, "slt") == 0) // Instruccion tipo R
+    {
+        if (RegDst != 2)
+        {
+            RegDst = 1;
+        }
+        Jump = 0;
+        Branch = 0;
+        MemRead = 0;
+        MemtoReg = 0;
+        ALUOpIZQ = 1;
+        ALUOpDER = 0;
+        MemWrite = 0;
+        if (ALUSrc != 2)
+        {
+            ALUSrc = 0;
+        }
+        if (RegWrite != 2)
+        {
+            RegWrite = 1;
+        }
+    }
+    else if (strcmp(instruccion->ins, "lw") == 0)
+    {
+        if (RegDst != 2)
+        {
+            RegDst = 0;
+        }
+        Jump = 0;
+        Branch = 0;
+        MemRead = 1;
+        MemtoReg = 1;
+        ALUOpIZQ = 0;
+        ALUOpDER = 0;
+        MemWrite = 0;
+        if (ALUSrc != 2)
+        {
+            ALUSrc = 1;
+        }
+        if (RegWrite != 2)
+        {
+            RegWrite = 1;
+        }
+    }
+    else if (strcmp(instruccion->ins, "sw") == 0)
+    {
+        /*
+        if (RegDst != 2)
+        {
+            RegDst = 0;     // Don't care
+        }
+        */
+        Jump = 0;
+        Branch = 0;
+        MemRead = 0;
+        // MemtoReg = 0;    // Don't care
+        ALUOpIZQ = 0;
+        ALUOpDER = 0;
+        MemWrite = 1;
+        if (ALUSrc != 2)
+        {
+            ALUSrc = 1;
+        }
+        if (RegWrite != 2)
+        {
+            RegWrite = 0;
+        }
+    }
+    else if (strcmp(instruccion->ins, "beq") == 0)
+    {
+        /*
+        if (RegDst != 2)
+        {
+            RegDst = 0;     // Don't care
+        }
+        */
+        Jump = 0;
+        Branch = 1;
+        MemRead = 0;
+        // MemtoReg = 0;    // Don't care
+        ALUOpIZQ = 0;
+        ALUOpDER = 1;
+        MemWrite = 0;
+        if (ALUSrc != 2)
+        {
+            ALUSrc = 0;
+        }
+        if (RegWrite != 2)
+        {
+            RegWrite = 0;
+        }
+    }
+    else if (strcmp(instruccion->ins, "addi") == 0)
+    {
+        if (RegDst != 2)
+        {
+            RegDst = 0;
+        }
+        Jump = 0;
+        Branch = 0;
+        MemRead = 0;
+        MemtoReg = 0;
+        ALUOpIZQ = 0;
+        ALUOpDER = 0;
+        MemWrite = 0;
+        if (ALUSrc != 2)
+        {
+            ALUSrc = 1;
+        }
+        if (RegWrite != 2)
+        {
+            RegWrite = 1;
+        }
+    }
+    else if (strcmp(instruccion->ins, "j") == 0)
+    {
+        /*
+        if (RegDst != 2)
+        {
+            RegDst = 0;     // Don't care
+        }
+        */
+        Jump = 0;
+        // Branch = 0;      // Don't care
+        MemRead = 0;
+        // MemtoReg = 0;    // Don't care
+        // ALUOpIZQ = 0;    // Don't care
+        // ALUOpDER = 0;    // Don't care
+        MemWrite = 0;
+        /*
+        if (ALUSrc != 2)
+        {
+            ALUSrc = 1;     // Don't care
+        }
+        */
+        if (RegWrite != 2)
+        {
+            RegWrite = 1;
+        }
+    }
+
+    // Escribir valores control
+    return;
+}
+
+void execution()
+{
+}
+
+void memoryAccess()
+{
+
+    return;
+}
+
+void writeBack()
+{
+
     return;
 }
