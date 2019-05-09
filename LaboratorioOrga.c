@@ -4,51 +4,50 @@
 
 // ##### Registros #####
 // Todos los registros parten iniciados en cero, cambian sus valores durante la ejecucion.
-
 // ## $zero ##
-int $zero = 0;
+int zero = 0;
 // ## $at ##
-int $at = 0;
+int at = 0;
 // ## $v0 - $v1 ##
-int $v0 = 0;
-int $v1 = 0;
+int v0 = 0;
+int v1 = 0;
 // ## $a0 - $a3
-int $a0 = 0;
-int $a1 = 0;
-int $a2 = 0;
-int $a3 = 0;
+int a0 = 0;
+int a1 = 0;
+int a2 = 0;
+int a3 = 0;
 // ## $t0 - $t7 ##
-int $t0 = 0;
-int $t1 = 0;
-int $t2 = 0;
-int $t3 = 0;
-int $t4 = 0;
-int $t5 = 0;
-int $t6 = 0;
-int $t7 = 0;
+int t0 = 0;
+int t1 = 0;
+int t2 = 0;
+int t3 = 0;
+int t4 = 0;
+int t5 = 0;
+int t6 = 0;
+int t7 = 0;
 // ## $s0 - $s7
-int $s0 = 0;
-int $s1 = 0;
-int $s2 = 0;
-int $s3 = 0;
-int $s4 = 0;
-int $s5 = 0;
-int $s6 = 0;
-int $s7 = 0;
+int s0 = 0;
+int s1 = 0;
+int s2 = 0;
+int s3 = 0;
+int s4 = 0;
+int s5 = 0;
+int s6 = 0;
+int s7 = 0;
 // ## $t8 - $t9 ##
-int $t8 = 0;
-int $t9 = 0;
+int t8 = 0;
+int t9 = 0;
 // ## $k0 - $k1 ##
-int $k0 = 0;
-int $k1 = 0;
+int k0 = 0;
+int k1 = 0;
 // ## $gp ##
-int $gp = 0;
+int gp = 0;
 // ## $sp ##
-int $sp = 0;
+int sp = 0;
 // ## $fp ##
-int $fp = 0;
+int fp = 0;
 // ## $ra ##
-int $ra = 0;
+int ra = 0;
 
 // ##### Lineas de Control #####
 // Todas las lineas parten iniciadas en 0, cambian sus valores al leer el archivo de entrada
@@ -65,6 +64,16 @@ int ALUOpDER = 0; //    00 <-
 int MemWrite = 0;
 int ALUSrc = 0;
 int RegWrite = 0;
+
+// ##### Memoria #####
+// Arreglo utilizado como memoria para guardar o cargar datos con sw y lw respectivamente.
+int memoria[1024];
+
+// ##### Miscelaneo #####
+// Puntero utilizado para la identificación de que ocurre un branch o un jump.
+// Se cambia al nombre de la etiqueta que se busca cuando se da el caso, luego
+// de encontrarla, se retorna el valor del puntero a NULL.
+char *etiqueta = NULL;
 
 // ########## Main ##########
 int main()
@@ -377,6 +386,7 @@ void imprimirMemoriaInstrucciones(lista *memoriaIns)
 
 void ejecucionPrograma(lista *memoriaIns)
 {
+    rellenarMemoria();
     int numeroCiclo = 0;
     nodo *contadorPrograma = memoriaIns->inicio;
 
@@ -384,22 +394,28 @@ void ejecucionPrograma(lista *memoriaIns)
     {
         numeroCiclo++;
         // Escribir número ciclo
-        instructionFetch(contadorPrograma);
-        instructionDecode(contadorPrograma);
+        if (strchr(contadorPrograma->ins, ':') != NULL)
+        {
+            int operacion;
+            modificarControl(contadorPrograma);
+            ejecutarInstruccion(contadorPrograma);
 
-        contadorPrograma = contadorPrograma->sgte;
+            contadorPrograma = contadorPrograma->sgte;
+        }
+        else
+        {
+            numeroCiclo--;
+            contadorPrograma = contadorPrograma->sgte;
+        }
+        imprimirControl();
+        imprimirRegistros();
+        printf("\n");
     }
 
     return;
 }
 
-void instructionFetch(nodo *contadorPrograma)
-{
-    // Escribir instrucción
-    return;
-}
-
-void instructionDecode(nodo *instruccion)
+void modificarControl(nodo *instruccion)
 {
     if (strcmp(instruccion->ins, "add") == 0 || strcmp(instruccion->ins, "sub") == 0 || strcmp(instruccion->ins, "and") == 0 ||
         strcmp(instruccion->ins, "or") == 0 || strcmp(instruccion->ins, "slt") == 0) // Instruccion tipo R
@@ -547,18 +563,459 @@ void instructionDecode(nodo *instruccion)
     return;
 }
 
-void execution()
+void ejecutarInstruccion(nodo *instruccion)
 {
-}
-
-void memoryAccess()
-{
+    if (strcmp(instruccion->ins, "add") == 0 || strcmp(instruccion->ins, "sub") == 0 || strcmp(instruccion->ins, "and") == 0 ||
+        strcmp(instruccion->ins, "or") == 0 || strcmp(instruccion->ins, "slt") == 0)
+    {
+        if ((RegDst == 1 || RegDst == 2) && (ALUSrc == 0) && (RegWrite == 1 || RegWrite == 2))
+        {
+            if (strcmp(instruccion->ins, "add") == 0)
+            {
+                *obtenerReferencia(instruccion->rd) = obtenerDato(instruccion->rs) + obtenerDato(instruccion->rt);
+            }
+            else if (strcmp(instruccion->ins, "sub") == 0)
+            {
+                *obtenerReferencia(instruccion->rd) = obtenerDato(instruccion->rs) - obtenerDato(instruccion->rt);
+            }
+            else if (strcmp(instruccion->ins, "and") == 0)
+            {
+                if (obtenerDato(instruccion->rs) == obtenerDato(instruccion->rt))
+                {
+                    *obtenerReferencia(instruccion->rd) = obtenerDato(instruccion->rs);
+                }
+                else
+                {
+                    
+                }
+            }
+            else if (strcmp(instruccion->ins, "or") == 0)
+            {
+                if (obtenerDato(instruccion->rs) == obtenerDato(instruccion->rt))
+                {
+                    *obtenerReferencia(instruccion->rd) = obtenerDato(instruccion->rs);
+                }
+                else
+                {
+                    
+                }
+            }
+            else if (strcmp(instruccion->ins, "slt") == 0)
+            {
+                if (obtenerDato(instruccion->rs) < obtenerDato(instruccion->rt))
+                {
+                    *obtenerReferencia(instruccion->rd) = 1;
+                }
+                else
+                {
+                    *obtenerReferencia(instruccion->rd) = 0;
+                }
+            }
+            // Escribir valores registros
+        }
+        else
+        {
+            // Escribir error
+        }
+    }
+    else if (strcmp(instruccion->ins, "lw") == 0)
+    {
+        if ((RegDst == 0) && (ALUSrc == 1 || ALUSrc == 2) && (RegWrite == 1 || RegWrite == 2))
+        {
+            int direccion = (obtenerDato(instruccion->rs) + atoi(instruccion->offset)) / 4;
+            *obtenerReferencia(instruccion->rt) = memoria[direccion];
+            // Escribir valores registros
+        }
+        else
+        {
+            // Escribir error
+        }
+    }
+    else if (strcmp(instruccion->ins, "sw") == 0)
+    {
+        if ((RegDst == 0 || RegDst == 1 || RegDst == 2) && (ALUSrc == 1 || ALUSrc == 2) && (RegWrite == 0))
+        {
+            int direccion = (obtenerDato(instruccion->rs) + atoi(instruccion->offset)) / 4;
+            memoria[direccion] = obtenerDato(instruccion->rt);
+            // Escribir valores registros
+        }
+        else
+        {
+            // Escribir error
+        }
+    }
+    else if (strcmp(instruccion->ins, "addi") == 0)
+    {
+        if ((RegDst == 0) && (ALUSrc == 1 || ALUSrc == 2) && (RegWrite == 1 || RegWrite == 2))
+        {
+            *obtenerReferencia(instruccion->rt) = obtenerDato(instruccion->rs) + atoi(instruccion->immediate);
+            // Escribir valores registros
+        }
+        else
+        {
+            // Escribir error
+        }
+    }
+    else if (strcmp(instruccion->ins, "beq") == 0)
+    {
+        if ((RegDst == 0 || RegDst == 1 || RegDst == 2) && (ALUSrc == 1 || ALUSrc == 2) && (RegWrite == 0))
+        {
+            if (obtenerDato(instruccion->rt) == obtenerDato(instruccion->rs))
+            {
+                etiqueta = instruccion->label;
+            }
+            // Escribir valores registros
+        }
+        else
+        {
+            // Escribir error
+        }
+    }
+    else if (strcmp(instruccion->ins, "j") == 0)
+    {
+        if ((RegDst == 0 || RegDst == 1 || RegDst == 2) && (ALUSrc == 0 || ALUSrc == 1 || ALUSrc == 2) && (RegWrite == 0))
+        {
+            etiqueta = instruccion->label;
+            // Escribir valores registros
+        }
+        else
+        {
+            // Escribir error
+        }
+    }
 
     return;
 }
 
-void writeBack()
+int *obtenerReferencia(char *string)
 {
+    if (strcmp(string, "$zero") == 0)
+    {
+        return &zero;
+    }
+    else if (strcmp(string, "$at") == 0)
+    {
+        return &at;
+    }
+    else if (strcmp(string, "$v0") == 0)
+    {
+        return &v0;
+    }
+    else if (strcmp(string, "$v1") == 0)
+    {
+        return &v1;
+    }
+    else if (strcmp(string, "$a0") == 0)
+    {
+        return &a0;
+    }
+    else if (strcmp(string, "$a1") == 0)
+    {
+        return &a1;
+    }
+    else if (strcmp(string, "$a2") == 0)
+    {
+        return &a2;
+    }
+    else if (strcmp(string, "$a3") == 0)
+    {
+        return &a3;
+    }
+    else if (strcmp(string, "$t0") == 0)
+    {
+        return &t0;
+    }
+    else if (strcmp(string, "$t1") == 0)
+    {
+        return &t1;
+    }
+    else if (strcmp(string, "$t2") == 0)
+    {
+        return &t2;
+    }
+    else if (strcmp(string, "$t3") == 0)
+    {
+        return &t3;
+    }
+    else if (strcmp(string, "$t4") == 0)
+    {
+        return &t4;
+    }
+    else if (strcmp(string, "$t5") == 0)
+    {
+        return &t5;
+    }
+    else if (strcmp(string, "$t6") == 0)
+    {
+        return &t6;
+    }
+    else if (strcmp(string, "$t7") == 0)
+    {
+        return &t7;
+    }
+    else if (strcmp(string, "$s0") == 0)
+    {
+        return &s0;
+    }
+    else if (strcmp(string, "$s1") == 0)
+    {
+        return &s1;
+    }
+    else if (strcmp(string, "$s2") == 0)
+    {
+        return &s2;
+    }
+    else if (strcmp(string, "$s3") == 0)
+    {
+        return &s3;
+    }
+    else if (strcmp(string, "$s4") == 0)
+    {
+        return &s4;
+    }
+    else if (strcmp(string, "$s5") == 0)
+    {
+        return &s5;
+    }
+    else if (strcmp(string, "$s6") == 0)
+    {
+        return &s6;
+    }
+    else if (strcmp(string, "$s7") == 0)
+    {
+        return &s7;
+    }
+    else if (strcmp(string, "$t8") == 0)
+    {
+        return &t8;
+    }
+    else if (strcmp(string, "$t9") == 0)
+    {
+        return &t9;
+    }
+    else if (strcmp(string, "$k0") == 0)
+    {
+        return &k0;
+    }
+    else if (strcmp(string, "$k1") == 0)
+    {
+        return &k1;
+    }
+    else if (strcmp(string, "$gp") == 0)
+    {
+        return &gp;
+    }
+    else if (strcmp(string, "$sp") == 0)
+    {
+        return &sp;
+    }
+    else if (strcmp(string, "$fp") == 0)
+    {
+        return &fp;
+    }
+    else if (strcmp(string, "$ra") == 0)
+    {
+        return &ra;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
+int obtenerDato(char *string)
+{
+    if (strcmp(string, "$zero") == 0)
+    {
+        return zero;
+    }
+    else if (strcmp(string, "$at") == 0)
+    {
+        return at;
+    }
+    else if (strcmp(string, "$v0") == 0)
+    {
+        return v0;
+    }
+    else if (strcmp(string, "$v1") == 0)
+    {
+        return v1;
+    }
+    else if (strcmp(string, "$a0") == 0)
+    {
+        return a0;
+    }
+    else if (strcmp(string, "$a1") == 0)
+    {
+        return a1;
+    }
+    else if (strcmp(string, "$a2") == 0)
+    {
+        return a2;
+    }
+    else if (strcmp(string, "$a3") == 0)
+    {
+        return a3;
+    }
+    else if (strcmp(string, "$t0") == 0)
+    {
+        return t0;
+    }
+    else if (strcmp(string, "$t1") == 0)
+    {
+        return t1;
+    }
+    else if (strcmp(string, "$t2") == 0)
+    {
+        return t2;
+    }
+    else if (strcmp(string, "$t3") == 0)
+    {
+        return t3;
+    }
+    else if (strcmp(string, "$t4") == 0)
+    {
+        return t4;
+    }
+    else if (strcmp(string, "$t5") == 0)
+    {
+        return t5;
+    }
+    else if (strcmp(string, "$t6") == 0)
+    {
+        return t6;
+    }
+    else if (strcmp(string, "$t7") == 0)
+    {
+        return t7;
+    }
+    else if (strcmp(string, "$s0") == 0)
+    {
+        return s0;
+    }
+    else if (strcmp(string, "$s1") == 0)
+    {
+        return s1;
+    }
+    else if (strcmp(string, "$s2") == 0)
+    {
+        return s2;
+    }
+    else if (strcmp(string, "$s3") == 0)
+    {
+        return s3;
+    }
+    else if (strcmp(string, "$s4") == 0)
+    {
+        return s4;
+    }
+    else if (strcmp(string, "$s5") == 0)
+    {
+        return s5;
+    }
+    else if (strcmp(string, "$s6") == 0)
+    {
+        return s6;
+    }
+    else if (strcmp(string, "$s7") == 0)
+    {
+        return s7;
+    }
+    else if (strcmp(string, "$t8") == 0)
+    {
+        return t8;
+    }
+    else if (strcmp(string, "$t9") == 0)
+    {
+        return t9;
+    }
+    else if (strcmp(string, "$k0") == 0)
+    {
+        return k0;
+    }
+    else if (strcmp(string, "$k1") == 0)
+    {
+        return k1;
+    }
+    else if (strcmp(string, "$gp") == 0)
+    {
+        return gp;
+    }
+    else if (strcmp(string, "$sp") == 0)
+    {
+        return sp;
+    }
+    else if (strcmp(string, "$fp") == 0)
+    {
+        return fp;
+    }
+    else if (strcmp(string, "$ra") == 0)
+    {
+        return ra;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void rellenarMemoria()
+{
+	int i;
+	for(i = 0; i < 1024; i++)
+    {
+		memoria[i] = 0;
+	}
+	return;
+}
+
+void imprimirControl()
+{
+    printf("RegDst: %d - ", RegDst);
+    printf("Jump: %d - ", Jump);
+    printf("Branch: %d - ", Branch);
+    printf("MemRead: %d - ", MemRead);
+    printf("MemtoReg: %d - ", MemtoReg);
+    printf("ALUOpIZQ: %d - ", ALUOpIZQ);
+    printf("ALUOpDER: %d - ", ALUOpDER);
+    printf("MemWrite: %d - ", MemWrite);
+    printf("ALUSrc: %d - ", ALUSrc);
+    printf("RegWrite: %d\n", RegWrite);
+}
+
+void imprimirRegistros()
+{
+    printf("$zero = %d\n", zero);
+    printf("$at = %d\n", at);
+    printf("$v0 = %d\n", v0);
+    printf("$v1 = %d\n", v1);
+    printf("$a0 = %d\n", a0);
+    printf("$a1 = %d\n", a1);
+    printf("$a2 = %d\n", a2);
+    printf("$a3 = %d\n", a3);
+    printf("$t0 = %d\n", t0);
+    printf("$t1 = %d\n", t1);
+    printf("$t2 = %d\n", t2);
+    printf("$t3 = %d\n", t3);
+    printf("$t4 = %d\n", t4);
+    printf("$t5 = %d\n", t5);
+    printf("$t6 = %d\n", t6);
+    printf("$t7 = %d\n", t7);
+    printf("$s0 = %d\n", s0);
+    printf("$s1 = %d\n", s1);
+    printf("$s2 = %d\n", s2);
+    printf("$s3 = %d\n", s3);
+    printf("$s4 = %d\n", s4);
+    printf("$s5 = %d\n", s5);
+    printf("$s6 = %d\n", s6);
+    printf("$s7 = %d\n", s7);
+    printf("$t8 = %d\n", t8);
+    printf("$t9 = %d\n", t9);
+    printf("$k0 = %d\n", k0);
+    printf("$k1 = %d\n", k1);
+    printf("$gp = %d\n", gp);
+    printf("$sp = %d\n", sp);
+    printf("$fp = %d\n", fp);
+    printf("$ra = %d\n", ra);
     return;
 }
