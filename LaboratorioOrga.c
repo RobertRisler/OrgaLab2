@@ -441,8 +441,8 @@ void ejecucionPrograma(lista *memoriaIns, char *archivo)
             contadorPrograma = contadorPrograma->sgte;
         }
     }
-
     fprintf(pArchivo, "\n- - - - - - - - - - FIN DEL PROGRAMA - - - - - - - - - -");
+    
     printf("\nLos resultados han sido escritos en el archivo de texto: %s\n\n", archivo);
 
     fclose(pArchivo);
