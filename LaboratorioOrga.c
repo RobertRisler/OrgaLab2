@@ -88,24 +88,32 @@ int main()
 // ########## Funciones ##########
 void menu()
 {
-    /*
-    char nombreArchivoControl[50];
-    printf("Ingrese el nombre del archivo de control:\n");
-    scanf("%s", nombreArchivoControl);
-    */
-    leerArchivoControl("control.txt");
+    printf("\n");
+    printf("###############################################\n");
+    printf("#                                             #\n");
+    printf("#  PROGRAMA DE SIMULACION DE CAMINO DE DATOS  #\n");
+    printf("#                                             #\n");
+    printf("###############################################\n");
 
-    /*
+    char nombreArchivoControl[50];
+    printf("\n(No olvide la extension del archivo)\nIngrese el nombre del archivo de control:\n");
+    scanf("%s", nombreArchivoControl);
+    leerArchivoControl(nombreArchivoControl);
+
     char nombreArchivoInstrucciones[50];
-    printf("Ingrese el nombre del archivo de instrucciones:\n");
+    printf("\n(No olvide la extension del archivo)\nIngrese el nombre del archivo de instrucciones:\n");
     scanf("%s", nombreArchivoInstrucciones);
-    */
+
+    char nombreArchivoSalida[50];
+    printf("\n(No olvide la extension del archivo)\nIngrese el nombre del archivo de salida:\n");
+    scanf("%s", nombreArchivoSalida);
+
     lista *memoriaInstrucciones = (lista *)malloc(sizeof(lista));
     memoriaInstrucciones->largo = 0;
     memoriaInstrucciones->inicio = NULL;
-    guardarInstrucciones("instrucciones.txt", memoriaInstrucciones);
+    guardarInstrucciones(nombreArchivoInstrucciones, memoriaInstrucciones);
 
-    ejecucionPrograma(memoriaInstrucciones);
+    ejecucionPrograma(memoriaInstrucciones, nombreArchivoSalida);
     return;
 }
 
@@ -350,10 +358,10 @@ void removerComa(char *string, char basura)
     return;
 }
 
-void ejecucionPrograma(lista *memoriaIns)
+void ejecucionPrograma(lista *memoriaIns, char *archivo)
 {
     FILE *pArchivo;
-    pArchivo = fopen("trazaPrograma.txt", "w");
+    pArchivo = fopen(archivo, "w");
     fprintf(pArchivo, "- - - - - - - - - - INICIO DEL PROGRAMA - - - - - - - - - -\n");
 
     rellenarMemoria();
