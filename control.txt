@@ -1,4 +1,4 @@
-RegDst x
+RegDst 1
 Jump x
 Branch x
 MemRead x
