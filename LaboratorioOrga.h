@@ -28,18 +28,23 @@ void guardarInstrucciones(char *nombre, lista *memoriaIns);
 void ingresarInstruccion(lista *memoriaIns, int tipoIns, char *token1, char *token2, char *token3, char *token4);
 void limpiarLinea(char *string);
 void removerComa(char *string, char basura);
+
 void ejecucionPrograma(lista *memoriaIns, char *salida);
 void modificarControl(nodo *contadorPrograma);
 void ejecutarInstruccion(nodo *instruccion);
+
 int *obtenerReferencia(char *string);
 int obtenerDato(char *string);
 int direccionNumericaRegistro(char *string);
 int *referenciaRdDesdeOffImm(char *string);
+
 void rellenarMemoria();
+
 void escribirInstruccion(FILE **pArchivo, nodo *instruccion);
 void escribirControl(FILE **pArchivo);
 void escribirRegistros(FILE **pArchivo);
 void escribirError(FILE **pArchivo);
+
 void imprimirInstruccion(nodo *instruccion);
 void imprimirMemoriaInstrucciones(lista *memoriaIns);
 void imprimirControl();
