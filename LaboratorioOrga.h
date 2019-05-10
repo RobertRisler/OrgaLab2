@@ -44,3 +44,4 @@ void imprimirInstruccion(nodo *instruccion);
 void imprimirMemoriaInstrucciones(lista *memoriaIns);
 void imprimirControl();
 void imprimirRegistros();
+void liberarMemoria(lista *memoriaIns);

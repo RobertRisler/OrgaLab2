@@ -94,6 +94,7 @@ void menu()
     printf("#  PROGRAMA DE SIMULACION DE CAMINO DE DATOS  #\n");
     printf("#                                             #\n");
     printf("###############################################\n");
+    printf("\n");
 
     char nombreArchivoControl[50];
     printf("\n(No olvide la extension del archivo)\nIngrese el nombre del archivo de control:\n");
@@ -108,12 +109,19 @@ void menu()
     printf("\n(No olvide la extension del archivo)\nIngrese el nombre del archivo de salida:\n");
     scanf("%s", nombreArchivoSalida);
 
+    // Lista donde se guardan todas las instrucciones.
     lista *memoriaInstrucciones = (lista *)malloc(sizeof(lista));
     memoriaInstrucciones->largo = 0;
     memoriaInstrucciones->inicio = NULL;
     guardarInstrucciones(nombreArchivoInstrucciones, memoriaInstrucciones);
 
+    // Ejecución general del programa.
     ejecucionPrograma(memoriaInstrucciones, nombreArchivoSalida);
+
+    // Se libera la memoria de cada nodo y de la lista.
+    liberarMemoria(memoriaInstrucciones);
+    free(memoriaInstrucciones);
+
     return;
 }
 
@@ -379,10 +387,12 @@ void ejecucionPrograma(lista *memoriaIns, char *archivo)
             fprintf(pArchivo, "Instruccion > ");
             escribirInstruccion(&pArchivo, contadorPrograma);
 
+            /*
             // Traza por consola
             printf("Ciclo: %d\n", numeroCiclo);
             printf("Instruccion: ");
             imprimirInstruccion(contadorPrograma);
+            */
 
             modificarControl(contadorPrograma);
             ejecutarInstruccion(contadorPrograma);
@@ -414,12 +424,14 @@ void ejecucionPrograma(lista *memoriaIns, char *archivo)
             escribirRegistros(&pArchivo);
             escribirError(&pArchivo);
 
+            /*
             // Traza por consola
             printf("Control: ");
             imprimirControl();
             printf("Registros: \n");
             imprimirRegistros();
             printf("\n");
+            */
 
             contadorPrograma = contadorPrograma->sgte;
         }
@@ -431,6 +443,8 @@ void ejecucionPrograma(lista *memoriaIns, char *archivo)
     }
 
     fprintf(pArchivo, "\n- - - - - - - - - - FIN DEL PROGRAMA - - - - - - - - - -");
+    printf("\nLos resultados han sido escritos en el archivo de texto: %s\n\n", archivo);
+
     fclose(pArchivo);
     return;
 }
@@ -1586,5 +1600,20 @@ void imprimirRegistros()
     printf("$sp = %d\n", sp);
     printf("$fp = %d\n", fp);
     printf("$ra = %d\n", ra);
+    return;
+}
+
+void liberarMemoria(lista *memoriaIns)
+{
+    nodo *aux1 = memoriaIns->inicio;
+    nodo *aux2;
+    
+    while (aux1 != NULL)
+    {
+        aux2 = aux1;
+        aux1 = aux1->sgte;
+        free(aux2);
+    }
+
     return;
 }
