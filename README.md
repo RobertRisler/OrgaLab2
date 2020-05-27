@@ -1,2 +1,2 @@
-# OrgaLab2
-Laboratorio 2 Organización de Computadores 1/2019
+# Orga-Lab2
+Laboratorio 2 Organización de Computadores. C. (1-2019).
